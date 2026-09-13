@@ -79,12 +79,20 @@
   }
 
   const DEADLINES = [
+    { date: "2026-09-14", time: "All day", course: "Personal", title: "Greg's birthday" },
     { date: "2026-09-14", time: "12:00 PM", course: "CSC108H1", title: "Prepare exercise due" },
     { date: "2026-09-16", time: "11:00 PM", course: "STA220H5", title: "Module 1 Tutorial Participation" },
     { date: "2026-09-18", time: "4:00 PM", course: "CSC108H1", title: "Perform exercise due" },
     { date: "2026-09-21", time: "12:00 PM", course: "CSC108H1", title: "Prepare exercise due" },
     { date: "2026-09-23", time: "11:59 PM", course: "CSC108H1", title: "Survey One due" },
-    { date: "2026-09-25", time: "4:00 PM", course: "CSC108H1", title: "Perform exercise due" }
+    { date: "2026-09-25", time: "4:00 PM", course: "CSC108H1", title: "Perform exercise due" },
+    { date: "2026-09-28", time: "12:00 PM", course: "CSC108H1", title: "Prepare exercise due" },
+    { date: "2026-09-30", time: "All day", course: "Holiday", title: "Truth and Reconciliation Day" },
+    { date: "2026-10-02", time: "4:00 PM", course: "CSC108H1", title: "Perform exercise due" },
+    { date: "2026-10-05", time: "12:00 PM", course: "CSC108H1", title: "Prepare exercise due" },
+    { date: "2026-10-05", time: "1:00 PM", course: "CSC108H1", title: "Quiz 1 (Lecture Classroom)" },
+    { date: "2026-10-09", time: "4:00 PM", course: "CSC108H1", title: "Perform exercise due" },
+    { date: "2026-10-12", time: "All day", course: "Holiday", title: "Thanksgiving Day" }
   ];
 
   function renderDeadlines() {
@@ -93,9 +101,7 @@
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const upcoming = DEADLINES
-      .filter((d) => new Date(`${d.date}T00:00:00`) >= today)
-      .slice(0, 6);
+    const upcoming = DEADLINES.filter((d) => new Date(`${d.date}T00:00:00`) >= today);
 
     list.innerHTML = upcoming
       .map((d) => {
@@ -115,7 +121,7 @@
       .join("");
 
     if (!upcoming.length) {
-      list.innerHTML = `<li class="deadline-item"><div class="deadline-body"><div class="deadline-meta">Nothing due — you're clear.</div></div></li>`;
+      list.innerHTML = `<li class="deadline-item"><div class="deadline-body"><div class="deadline-meta">Nothing upcoming — you're clear.</div></div></li>`;
     }
   }
 

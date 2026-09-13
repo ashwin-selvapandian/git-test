@@ -155,6 +155,8 @@ main {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: 640px;
+  overflow-y: auto;
 }
 
 .deadline-item {
