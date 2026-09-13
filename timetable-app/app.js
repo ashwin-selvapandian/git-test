@@ -28,9 +28,9 @@
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw === null) {
       const sample = [
-        { id: uid(), title: "Calculus 101", day: 0, start: "09:00", end: "10:30", location: "Room 204", color: "#5b8def" },
-        { id: uid(), title: "Physics Lab", day: 2, start: "13:00", end: "15:00", location: "Lab B", color: "#4cb782" },
-        { id: uid(), title: "Study Group", day: 4, start: "16:00", end: "17:00", location: "Library", color: "#e0a23c" }
+        { id: uid(), title: "Calculus 101", day: 0, start: "09:00", end: "10:30", location: "Room 204", color: "#3d6b5c" },
+        { id: uid(), title: "Physics Lab", day: 2, start: "13:00", end: "15:00", location: "Lab B", color: "#a8763e" },
+        { id: uid(), title: "Study Group", day: 4, start: "16:00", end: "17:00", location: "Library", color: "#8a5a44" }
       ];
       saveEvents(sample);
       return sample;
@@ -139,7 +139,7 @@
       block.className = "event-block";
       block.style.gridRow = `${rowStart} / span ${rowSpan}`;
       block.style.gridColumn = String(Number(ev.day) + 2);
-      block.style.background = ev.color || "#5b8def";
+      block.style.background = ev.color || "#3d6b5c";
       block.style.position = "relative";
       block.style.zIndex = "2";
       block.innerHTML = `
@@ -171,7 +171,7 @@
     const endMinutes = h * 60 + m + 60;
     fEnd.value = `${String(Math.floor(endMinutes / 60) % 24).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
     fLocation.value = "";
-    fColor.value = "#5b8def";
+    fColor.value = "#3d6b5c";
     deleteBtn.classList.add("hidden");
     formError.classList.add("hidden");
     overlay.classList.remove("hidden");
@@ -186,7 +186,7 @@
     fStart.value = ev.start;
     fEnd.value = ev.end;
     fLocation.value = ev.location || "";
-    fColor.value = ev.color || "#5b8def";
+    fColor.value = ev.color || "#3d6b5c";
     deleteBtn.classList.remove("hidden");
     formError.classList.add("hidden");
     overlay.classList.remove("hidden");

@@ -1,32 +1,54 @@
 :root {
-  --bg: #f5f6fa;
+  --bg: #f6f4ef;
   --surface: #ffffff;
-  --border: #e2e4ea;
-  --text: #1c1f26;
-  --text-muted: #6b7280;
-  --accent: #5b8def;
-  --accent-hover: #4a7bdb;
-  --danger: #e0524c;
-  --danger-hover: #c8433e;
-  --shadow: 0 2px 10px rgba(20, 20, 40, 0.06);
+  --border: #e4e0d6;
+  --text: #262420;
+  --text-muted: #70685d;
+  --accent: #3d6b5c;
+  --accent-hover: #305648;
+  --accent-soft: rgba(61, 107, 92, 0.1);
+  --danger: #b3483c;
+  --danger-hover: #973b31;
+  --shadow: 0 2px 10px rgba(38, 34, 24, 0.07);
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14161c;
-    --surface: #1d2027;
-    --border: #2c303a;
-    --text: #eceef2;
-    --text-muted: #9aa0ac;
-    --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  :root:not([data-theme="light"]) {
+    --bg: #17181a;
+    --surface: #1f2123;
+    --border: #313336;
+    --text: #ecebe8;
+    --text-muted: #a3a099;
+    --accent: #6ba98f;
+    --accent-hover: #7fb89f;
+    --accent-soft: rgba(107, 169, 143, 0.14);
+    --danger: #d9847a;
+    --danger-hover: #e2988f;
+    --shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #17181a;
+  --surface: #1f2123;
+  --border: #313336;
+  --text: #ecebe8;
+  --text-muted: #a3a099;
+  --accent: #6ba98f;
+  --accent-hover: #7fb89f;
+  --accent-soft: rgba(107, 169, 143, 0.14);
+  --danger: #d9847a;
+  --danger-hover: #e2988f;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-body);
   background: var(--bg);
   color: var(--text);
 }
@@ -46,7 +68,10 @@ body {
 }
 
 .topbar h1 {
-  font-size: 1.25rem;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   margin: 0;
 }
 
@@ -118,6 +143,7 @@ main {
 .time-label {
   grid-column: 1;
   font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
   text-align: right;
   padding-right: 8px;
@@ -131,7 +157,7 @@ main {
   cursor: pointer;
   min-height: 14px;
 }
-.slot-cell:hover { background: rgba(91, 141, 239, 0.08); }
+.slot-cell:hover { background: var(--accent-soft); }
 .slot-cell.hour-line { border-top: 1px solid var(--border); }
 
 .event-block {
@@ -154,6 +180,7 @@ main {
 .event-block .ev-meta {
   opacity: 0.9;
   font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Modal */
