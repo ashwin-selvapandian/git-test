@@ -7,7 +7,7 @@
   const SLOT_MIN = 30;
   const SLOTS_PER_HOUR = 60 / SLOT_MIN;
   const TOTAL_SLOTS = (END_HOUR - START_HOUR) * SLOTS_PER_HOUR;
-  const STORAGE_KEY = "timetable_events_v1";
+  const STORAGE_KEY = "timetable_events_v2";
   const ROW_PX = 28;
 
   const grid = document.getElementById("calendarGrid");
@@ -28,9 +28,13 @@
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw === null) {
       const sample = [
-        { id: uid(), title: "Calculus 101", day: 0, start: "09:00", end: "10:30", location: "Room 204", color: "#3d6b5c" },
-        { id: uid(), title: "Physics Lab", day: 2, start: "13:00", end: "15:00", location: "Lab B", color: "#a8763e" },
-        { id: uid(), title: "Study Group", day: 4, start: "16:00", end: "17:00", location: "Library", color: "#8a5a44" }
+        { id: uid(), title: "ECO311H5 – Pricing Strategies", day: 0, start: "09:00", end: "11:00", location: "MN 2190", color: "#3d6b5c" },
+        { id: uid(), title: "CSC108H1 – Intro to Computer Sci", day: 0, start: "13:00", end: "14:00", location: "PB B250", color: "#8a5a44" },
+        { id: uid(), title: "ECO466H5 – Empirical Macro", day: 1, start: "11:00", end: "13:00", location: "", color: "#a8763e" },
+        { id: uid(), title: "ECO312H5 – Firms and Markets", day: 1, start: "17:00", end: "19:00", location: "MN 2190", color: "#5c6b8a" },
+        { id: uid(), title: "CSC108H1 – Intro to Computer Sci", day: 2, start: "13:00", end: "15:00", location: "MB 128", color: "#8a5a44" },
+        { id: uid(), title: "ECO466H5 – Empirical Macro", day: 3, start: "11:00", end: "13:00", location: "", color: "#a8763e" },
+        { id: uid(), title: "ECO365H5 – International Monetary", day: 4, start: "09:00", end: "11:00", location: "IB 150", color: "#6b4c8a" }
       ];
       saveEvents(sample);
       return sample;
@@ -72,6 +76,47 @@
       return m === 0 ? `${hour12} ${period}` : `${hour12}:${String(m).padStart(2, "0")} ${period}`;
     }
     return `${fmt(start)} – ${fmt(end)}`;
+  }
+
+  const DEADLINES = [
+    { date: "2026-09-14", time: "12:00 PM", course: "CSC108H1", title: "Prepare exercise due" },
+    { date: "2026-09-16", time: "11:00 PM", course: "STA220H5", title: "Module 1 Tutorial Participation" },
+    { date: "2026-09-18", time: "4:00 PM", course: "CSC108H1", title: "Perform exercise due" },
+    { date: "2026-09-21", time: "12:00 PM", course: "CSC108H1", title: "Prepare exercise due" },
+    { date: "2026-09-23", time: "11:59 PM", course: "CSC108H1", title: "Survey One due" },
+    { date: "2026-09-25", time: "4:00 PM", course: "CSC108H1", title: "Perform exercise due" }
+  ];
+
+  function renderDeadlines() {
+    const list = document.getElementById("deadlinesList");
+    if (!list) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const upcoming = DEADLINES
+      .filter((d) => new Date(`${d.date}T00:00:00`) >= today)
+      .slice(0, 6);
+
+    list.innerHTML = upcoming
+      .map((d) => {
+        const dt = new Date(`${d.date}T00:00:00`);
+        const dow = dt.toLocaleDateString(undefined, { weekday: "short" });
+        const dom = dt.getDate();
+        return `
+          <li class="deadline-item">
+            <div class="deadline-date"><span class="dow">${dow}</span><span class="dom">${dom}</span></div>
+            <div class="deadline-body">
+              <div class="deadline-title">${escapeHtml(d.title)}</div>
+              <div class="deadline-meta">${escapeHtml(d.course)} · ${escapeHtml(d.time)}</div>
+            </div>
+          </li>
+        `;
+      })
+      .join("");
+
+    if (!upcoming.length) {
+      list.innerHTML = `<li class="deadline-item"><div class="deadline-body"><div class="deadline-meta">Nothing due — you're clear.</div></div></li>`;
+    }
   }
 
   let events = loadEvents();
@@ -284,4 +329,5 @@
   });
 
   buildGrid();
+  renderDeadlines();
 })();
