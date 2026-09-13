@@ -431,6 +431,160 @@
     reader.readAsText(file);
   });
 
+  // ---- Tab navigation ----
+  const PAGE_TITLES = { schedule: "Ashwin's Timetable", todo: "To-Do", notes: "Notes" };
+
+  function initTabs() {
+    const tabs = document.querySelectorAll(".tab");
+    const views = { schedule: document.getElementById("viewSchedule"), todo: document.getElementById("viewTodo"), notes: document.getElementById("viewNotes") };
+    const scheduleActions = document.getElementById("scheduleActions");
+    const pageTitle = document.getElementById("pageTitle");
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const target = tab.dataset.view;
+        tabs.forEach((t) => t.classList.toggle("active", t === tab));
+        Object.entries(views).forEach(([key, el]) => el.classList.toggle("hidden", key !== target));
+        scheduleActions.classList.toggle("hidden", target !== "schedule");
+        pageTitle.textContent = PAGE_TITLES[target];
+      });
+    });
+  }
+
+  // ---- To-Do list ----
+  const TODO_KEY = "timetable_todos_v1";
+  let todos = [];
+
+  function loadTodos() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(TODO_KEY));
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveTodos() {
+    localStorage.setItem(TODO_KEY, JSON.stringify(todos));
+  }
+
+  function renderTodos() {
+    const list = document.getElementById("todoList");
+    if (!list) return;
+    if (!todos.length) {
+      list.innerHTML = `<li class="todo-empty">Nothing on your list yet.</li>`;
+      return;
+    }
+    list.innerHTML = todos
+      .map(
+        (t) => `
+          <li class="todo-item ${t.done ? "done" : ""}" data-id="${t.id}">
+            <input type="checkbox" ${t.done ? "checked" : ""}>
+            <span class="todo-text">${escapeHtml(t.text)}</span>
+            <button type="button" class="todo-delete" aria-label="Delete task">✕</button>
+          </li>
+        `
+      )
+      .join("");
+
+    list.querySelectorAll(".todo-item").forEach((li) => {
+      const id = li.dataset.id;
+      li.querySelector('input[type="checkbox"]').addEventListener("change", (e) => {
+        const t = todos.find((x) => x.id === id);
+        if (t) { t.done = e.target.checked; saveTodos(); renderTodos(); }
+      });
+      li.querySelector(".todo-delete").addEventListener("click", () => {
+        todos = todos.filter((x) => x.id !== id);
+        saveTodos();
+        renderTodos();
+      });
+    });
+  }
+
+  function initTodos() {
+    todos = loadTodos();
+    const form = document.getElementById("todoForm");
+    const input = document.getElementById("todoInput");
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      todos.push({ id: uid(), text, done: false });
+      saveTodos();
+      renderTodos();
+      input.value = "";
+      input.focus();
+    });
+    renderTodos();
+  }
+
+  // ---- Notes ----
+  const NOTES_KEY = "timetable_notes_v1";
+  let notes = [];
+
+  function loadNotes() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(NOTES_KEY));
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveNotes() {
+    localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+  }
+
+  function renderNotes() {
+    const gridEl = document.getElementById("notesGrid");
+    if (!gridEl) return;
+    gridEl.innerHTML = notes
+      .map(
+        (n) => `
+          <div class="note-card" data-id="${n.id}">
+            <button type="button" class="note-delete" aria-label="Delete note">✕</button>
+            <input type="text" class="note-title" placeholder="Title" value="${escapeHtml(n.title)}">
+            <textarea class="note-body" placeholder="Write a note…">${escapeHtml(n.body)}</textarea>
+          </div>
+        `
+      )
+      .join("");
+
+    gridEl.querySelectorAll(".note-card").forEach((card) => {
+      const id = card.dataset.id;
+      const titleEl = card.querySelector(".note-title");
+      const bodyEl = card.querySelector(".note-body");
+      titleEl.addEventListener("input", () => {
+        const n = notes.find((x) => x.id === id);
+        if (n) { n.title = titleEl.value; saveNotes(); }
+      });
+      bodyEl.addEventListener("input", () => {
+        const n = notes.find((x) => x.id === id);
+        if (n) { n.body = bodyEl.value; saveNotes(); }
+      });
+      card.querySelector(".note-delete").addEventListener("click", () => {
+        notes = notes.filter((x) => x.id !== id);
+        saveNotes();
+        renderNotes();
+      });
+    });
+  }
+
+  function initNotes() {
+    notes = loadNotes();
+    document.getElementById("addNoteBtn").addEventListener("click", () => {
+      notes.unshift({ id: uid(), title: "", body: "" });
+      saveNotes();
+      renderNotes();
+      const firstTitle = document.querySelector(".note-card .note-title");
+      if (firstTitle) firstTitle.focus();
+    });
+    renderNotes();
+  }
+
   buildGrid();
   renderDeadlines();
+  initTabs();
+  initTodos();
+  initNotes();
 })();
