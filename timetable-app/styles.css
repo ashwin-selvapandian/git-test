@@ -112,6 +112,22 @@ main {
   padding: 20px;
 }
 
+.conflict-banner {
+  background: color-mix(in srgb, var(--danger) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--danger) 40%, var(--surface));
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+.conflict-item {
+  line-height: 1.5;
+}
+.conflict-item strong {
+  color: var(--danger);
+}
+
 .dashboard-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 260px;

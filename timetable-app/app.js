@@ -7,7 +7,7 @@
   const SLOT_MIN = 30;
   const SLOTS_PER_HOUR = 60 / SLOT_MIN;
   const TOTAL_SLOTS = (END_HOUR - START_HOUR) * SLOTS_PER_HOUR;
-  const STORAGE_KEY = "timetable_events_v2";
+  const STORAGE_KEY = "timetable_events_v3";
   const ROW_PX = 28;
 
   const grid = document.getElementById("calendarGrid");
@@ -34,7 +34,14 @@
         { id: uid(), title: "ECO312H5 – Firms and Markets", day: 1, start: "17:00", end: "19:00", location: "MN 2190", color: "#5c6b8a" },
         { id: uid(), title: "CSC108H1 – Intro to Computer Sci", day: 2, start: "13:00", end: "15:00", location: "MB 128", color: "#8a5a44" },
         { id: uid(), title: "ECO466H5 – Empirical Macro", day: 3, start: "11:00", end: "13:00", location: "", color: "#a8763e" },
-        { id: uid(), title: "ECO365H5 – International Monetary", day: 4, start: "09:00", end: "11:00", location: "IB 150", color: "#6b4c8a" }
+        { id: uid(), title: "ECO365H5 – International Monetary", day: 4, start: "09:00", end: "11:00", location: "IB 150", color: "#6b4c8a" },
+        { id: uid(), title: "STA220H5 – TA Tutorial (TUT0102)", day: 2, start: "17:00", end: "18:00", location: "MN 3180", color: "#4a6b73" },
+        { id: uid(), title: "STA220H5 – TA Tutorial (TUT0103)", day: 2, start: "18:00", end: "19:00", location: "DH 2080", color: "#4a6b73" },
+        { id: uid(), title: "Jiu Jitsu", day: 0, start: "12:00", end: "13:00", location: "", color: "#5c7a3d" },
+        { id: uid(), title: "Jiu Jitsu", day: 2, start: "12:00", end: "13:00", location: "", color: "#5c7a3d" },
+        { id: uid(), title: "Jiu Jitsu", day: 5, start: "12:00", end: "13:30", location: "", color: "#5c7a3d" },
+        { id: uid(), title: "Part-time Job", day: 1, start: "15:00", end: "19:00", location: "", color: "#734a5c" },
+        { id: uid(), title: "Part-time Job", day: 3, start: "15:00", end: "19:00", location: "", color: "#734a5c" }
       ];
       saveEvents(sample);
       return sample;
@@ -176,34 +183,123 @@
     renderEvents();
   }
 
+  function computeDayLayout(dayEvents) {
+    const layout = new Map();
+    let active = [];
+    let cluster = [];
+
+    function finalizeCluster() {
+      if (!cluster.length) return;
+      const colTotal = Math.max(...cluster.map((e) => layout.get(e.id).col)) + 1;
+      cluster.forEach((e) => { layout.get(e.id).colTotal = colTotal; });
+      cluster = [];
+    }
+
+    dayEvents.forEach((ev) => {
+      const start = timeToMinutes(ev.start);
+      const end = timeToMinutes(ev.end);
+      active = active.filter((a) => a.end > start);
+      if (active.length === 0) finalizeCluster();
+      const usedCols = new Set(active.map((a) => a.col));
+      let col = 0;
+      while (usedCols.has(col)) col++;
+      layout.set(ev.id, { col, colTotal: 1 });
+      active.push({ end, col });
+      cluster.push(ev);
+    });
+    finalizeCluster();
+    return layout;
+  }
+
   function renderEvents() {
     grid.querySelectorAll(".event-block").forEach((el) => el.remove());
 
+    const byDay = {};
     events.forEach((ev) => {
-      const startMin = timeToMinutes(ev.start);
-      const endMin = timeToMinutes(ev.end);
-      const gridStartMin = START_HOUR * 60;
-      const rowStart = 2 + Math.round((startMin - gridStartMin) / SLOT_MIN);
-      const rowSpan = Math.max(1, Math.round((endMin - startMin) / SLOT_MIN));
-
-      const block = document.createElement("div");
-      block.className = "event-block";
-      block.style.gridRow = `${rowStart} / span ${rowSpan}`;
-      block.style.gridColumn = String(Number(ev.day) + 2);
-      block.style.background = ev.color || "#3d6b5c";
-      block.style.position = "relative";
-      block.style.zIndex = "2";
-      block.innerHTML = `
-        <div class="ev-title">${escapeHtml(ev.title)}</div>
-        <div class="ev-meta">${formatTimeRange(ev.start, ev.end)}</div>
-        ${ev.location ? `<div class="ev-meta">${escapeHtml(ev.location)}</div>` : ""}
-      `;
-      block.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openEditModal(ev);
-      });
-      grid.appendChild(block);
+      (byDay[ev.day] = byDay[ev.day] || []).push(ev);
     });
+
+    Object.keys(byDay).forEach((dayKey) => {
+      const dayEvents = byDay[dayKey]
+        .slice()
+        .sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start) || timeToMinutes(a.end) - timeToMinutes(b.end));
+      const layout = computeDayLayout(dayEvents);
+
+      dayEvents.forEach((ev) => {
+        const { col, colTotal } = layout.get(ev.id);
+        const startMin = timeToMinutes(ev.start);
+        const endMin = timeToMinutes(ev.end);
+        const gridStartMin = START_HOUR * 60;
+        const rowStart = 2 + Math.round((startMin - gridStartMin) / SLOT_MIN);
+        const rowSpan = Math.max(1, Math.round((endMin - startMin) / SLOT_MIN));
+
+        const block = document.createElement("div");
+        block.className = "event-block";
+        block.style.gridRow = `${rowStart} / span ${rowSpan}`;
+        block.style.gridColumn = String(Number(ev.day) + 2);
+        block.style.background = ev.color || "#3d6b5c";
+        block.style.position = "relative";
+        block.style.zIndex = "2";
+        if (colTotal > 1) {
+          block.style.width = `calc(${100 / colTotal}% - 4px)`;
+          block.style.marginLeft = `calc(${100 / colTotal}% * ${col} + 2px)`;
+          block.style.marginRight = "0";
+        }
+        block.innerHTML = `
+          <div class="ev-title">${escapeHtml(ev.title)}</div>
+          <div class="ev-meta">${formatTimeRange(ev.start, ev.end)}</div>
+          ${ev.location ? `<div class="ev-meta">${escapeHtml(ev.location)}</div>` : ""}
+        `;
+        block.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openEditModal(ev);
+        });
+        grid.appendChild(block);
+      });
+    });
+
+    renderConflicts();
+  }
+
+  function detectConflicts() {
+    const conflicts = [];
+    const byDay = {};
+    events.forEach((ev) => (byDay[ev.day] = byDay[ev.day] || []).push(ev));
+    Object.values(byDay).forEach((dayEvents) => {
+      for (let i = 0; i < dayEvents.length; i++) {
+        for (let j = i + 1; j < dayEvents.length; j++) {
+          const a = dayEvents[i];
+          const b = dayEvents[j];
+          const aStart = timeToMinutes(a.start);
+          const aEnd = timeToMinutes(a.end);
+          const bStart = timeToMinutes(b.start);
+          const bEnd = timeToMinutes(b.end);
+          if (aStart < bEnd && bStart < aEnd) conflicts.push({ a, b });
+        }
+      }
+    });
+    return conflicts;
+  }
+
+  function renderConflicts() {
+    const banner = document.getElementById("conflictBanner");
+    if (!banner) return;
+    const conflicts = detectConflicts();
+    if (!conflicts.length) {
+      banner.classList.add("hidden");
+      banner.innerHTML = "";
+      return;
+    }
+    banner.classList.remove("hidden");
+    banner.innerHTML = conflicts
+      .map((c) => `
+        <div class="conflict-item">
+          <strong>${escapeHtml(DAYS[Number(c.a.day)])}:</strong>
+          ${escapeHtml(c.a.title)} (${formatTimeRange(c.a.start, c.a.end)}) overlaps
+          ${escapeHtml(c.b.title)} (${formatTimeRange(c.b.start, c.b.end)})
+        </div>
+      `)
+      .join("");
   }
 
   function escapeHtml(str) {
