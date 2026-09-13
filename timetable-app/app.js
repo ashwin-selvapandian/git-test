@@ -7,7 +7,7 @@
   const SLOT_MIN = 30;
   const SLOTS_PER_HOUR = 60 / SLOT_MIN;
   const TOTAL_SLOTS = (END_HOUR - START_HOUR) * SLOTS_PER_HOUR;
-  const STORAGE_KEY = "timetable_events_v3";
+  const STORAGE_KEY = "timetable_events_v4";
   const ROW_PX = 28;
 
   const grid = document.getElementById("calendarGrid");
@@ -41,7 +41,8 @@
         { id: uid(), title: "Jiu Jitsu", day: 2, start: "12:00", end: "13:00", location: "", color: "#5c7a3d" },
         { id: uid(), title: "Jiu Jitsu", day: 5, start: "12:00", end: "13:30", location: "", color: "#5c7a3d" },
         { id: uid(), title: "Part-time Job", day: 1, start: "15:00", end: "19:00", location: "", color: "#734a5c" },
-        { id: uid(), title: "Part-time Job", day: 3, start: "15:00", end: "19:00", location: "", color: "#734a5c" }
+        { id: uid(), title: "Part-time Job", day: 3, start: "15:00", end: "19:00", location: "", color: "#734a5c" },
+        { id: uid(), title: "Meeting Prof. Eduardo", day: 2, start: "11:00", end: "11:30", location: "TBD", color: "#73573d" }
       ];
       saveEvents(sample);
       return sample;
