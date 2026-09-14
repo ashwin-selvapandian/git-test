@@ -7,7 +7,7 @@
   const SLOT_MIN = 30;
   const SLOTS_PER_HOUR = 60 / SLOT_MIN;
   const TOTAL_SLOTS = (END_HOUR - START_HOUR) * SLOTS_PER_HOUR;
-  const STORAGE_KEY = "timetable_events_v5";
+  const STORAGE_KEY = "timetable_events_v6";
   const ROW_PX = 28;
 
   const grid = document.getElementById("calendarGrid");
@@ -42,7 +42,8 @@
         { id: uid(), title: "Jiu Jitsu", day: 5, start: "12:00", end: "13:30", location: "", color: "#5c7a3d" },
         { id: uid(), title: "Part-time Job", day: 1, start: "15:00", end: "19:00", location: "", color: "#734a5c" },
         { id: uid(), title: "Part-time Job", day: 3, start: "15:00", end: "19:00", location: "", color: "#734a5c" },
-        { id: uid(), title: "Meeting Prof. Eduardo", day: 2, start: "11:00", end: "11:30", location: "TBD", color: "#73573d" }
+        { id: uid(), title: "Meeting Prof. Eduardo", day: 2, start: "11:00", end: "11:30", location: "TBD", color: "#73573d" },
+        { id: uid(), title: "Mark STA220H5 Worksheets", day: 3, start: "19:30", end: "20:15", location: "", color: "#4a6b73" }
       ];
       saveEvents(sample);
       return sample;
@@ -89,54 +90,86 @@
   const DEADLINES = [
     { date: "2026-09-14", time: "All day", course: "Personal", title: "Greg's birthday" },
     { date: "2026-09-14", time: "12:00 PM", course: "CSC108H1", title: "Prepare exercise due" },
-    { date: "2026-09-16", time: "11:00 PM", course: "STA220H5", title: "Module 1 Tutorial Participation" },
+    { date: "2026-09-15", time: "7:30–8:30 PM", course: "Study session", title: "Start reviewing: ECO312H5 Quiz 1", type: "study", due: "2026-09-29" },
     { date: "2026-09-18", time: "4:00 PM", course: "CSC108H1", title: "Perform exercise due" },
     { date: "2026-09-21", time: "12:00 PM", course: "CSC108H1", title: "Prepare exercise due" },
+    { date: "2026-09-21", time: "7:00–8:00 PM", course: "Study session", title: "Start reviewing: ECO311H5 Quiz 1", type: "study", due: "2026-10-05" },
+    { date: "2026-09-22", time: "7:30–8:30 PM", course: "Study session", title: "Review: ECO312H5 Quiz 1 (practice problems)", type: "study", due: "2026-09-29" },
     { date: "2026-09-23", time: "11:59 PM", course: "CSC108H1", title: "Survey One due" },
     { date: "2026-09-25", time: "4:00 PM", course: "CSC108H1", title: "Perform exercise due" },
-    { date: "2026-09-26", time: "10:00–11:30 AM", course: "Study session", title: "Work: ECO466H5 Macro Assignment", type: "study" },
-    { date: "2026-09-26", time: "2:00–3:30 PM", course: "Study session", title: "Study: ECO312H5 Quiz 1 (lectures 1–3)", type: "study" },
+    { date: "2026-09-26", time: "10:00–11:30 AM", course: "Study session", title: "Work: ECO466H5 Macro Assignment", type: "study", due: "2026-10-01" },
+    { date: "2026-09-26", time: "2:00–3:30 PM", course: "Study session", title: "Final review: ECO312H5 Quiz 1 (lectures 1–3)", type: "study", due: "2026-09-29" },
     { date: "2026-09-28", time: "12:00 PM", course: "CSC108H1", title: "Prepare exercise due" },
+    { date: "2026-09-28", time: "7:00–8:00 PM", course: "Study session", title: "Review: ECO311H5 Quiz 1 (practice problems)", type: "study", due: "2026-10-05" },
     { date: "2026-09-29", time: "In class", course: "ECO312H5", title: "Quiz 1 (lectures 1–3) — 20%" },
+    { date: "2026-09-29", time: "7:30–8:30 PM", course: "Study session", title: "Start reviewing: ECO466H5 Tests", type: "study", due: "2026-10-13" },
     { date: "2026-09-30", time: "All day", course: "Holiday", title: "Truth and Reconciliation Day" },
     { date: "2026-10-01", time: "Due", course: "ECO466H5", title: "Macroeconomics Assignment — 10%" },
     { date: "2026-10-02", time: "4:00 PM", course: "CSC108H1", title: "Perform exercise due" },
-    { date: "2026-10-02", time: "7:00–8:30 PM", course: "Study session", title: "Study: ECO311H5 Quiz 1 (Price Discrimination)", type: "study" },
-    { date: "2026-10-04", time: "2:00–4:00 PM", course: "Study session", title: "Work: ECO466H5 Econometrics Assignment", type: "study" },
+    { date: "2026-10-02", time: "7:00–8:30 PM", course: "Study session", title: "Final review: ECO311H5 Quiz 1 (Price Discrimination)", type: "study", due: "2026-10-05" },
+    { date: "2026-10-04", time: "2:00–4:00 PM", course: "Study session", title: "Work: ECO466H5 Econometrics Assignment", type: "study", due: "2026-10-06" },
     { date: "2026-10-05", time: "12:00 PM", course: "CSC108H1", title: "Prepare exercise due" },
     { date: "2026-10-05", time: "In class", course: "ECO311H5", title: "Quiz 1" },
     { date: "2026-10-05", time: "1:00 PM", course: "CSC108H1", title: "Quiz 1 (Lecture Classroom)" },
     { date: "2026-10-06", time: "Due", course: "ECO466H5", title: "Econometrics Assignment — 10%" },
+    { date: "2026-10-06", time: "7:30–8:30 PM", course: "Study session", title: "Review: ECO466H5 Tests (practice problems)", type: "study", due: "2026-10-13" },
     { date: "2026-10-09", time: "4:00 PM", course: "CSC108H1", title: "Perform exercise due" },
-    { date: "2026-10-10", time: "2:00–4:30 PM", course: "Study session", title: "Study: ECO466H5 Tests (Macro & Econometrics)", type: "study" },
+    { date: "2026-10-09", time: "7:00–8:30 PM", course: "Study session", title: "Start reviewing: ECO365H5 Midterm", type: "study", due: "2026-10-23" },
+    { date: "2026-10-10", time: "2:00–4:30 PM", course: "Study session", title: "Final review: ECO466H5 Tests (Macro & Econometrics)", type: "study", due: "2026-10-13" },
     { date: "2026-10-12", time: "All day", course: "Holiday", title: "Thanksgiving Day (no ECO311H5 class)" },
-    { date: "2026-10-12", time: "2:00–4:00 PM", course: "Study session", title: "Prep: ECO466H5 Group Report", type: "study" },
+    { date: "2026-10-12", time: "2:00–4:00 PM", course: "Study session", title: "Prep: ECO466H5 Group Report", type: "study", due: "2026-10-14" },
     { date: "2026-10-13", time: "In class", course: "ECO466H5", title: "Test: Macroeconomics — 10%" },
     { date: "2026-10-13", time: "In class", course: "ECO466H5", title: "Test: Econometrics — 10%" },
     { date: "2026-10-14", time: "Midnight", course: "ECO466H5", title: "Group Report Slides due — 20%" },
     { date: "2026-10-15", time: "In class", course: "ECO466H5", title: "Group Report Presentation + Q&A — 40% (last class)" },
-    { date: "2026-10-19", time: "1:00–4:00 PM", course: "Study session", title: "Study: ECO365H5 Midterm", type: "study" },
+    { date: "2026-10-16", time: "7:00–8:30 PM", course: "Study session", title: "Review: ECO365H5 Midterm (practice problems)", type: "study", due: "2026-10-23" },
+    { date: "2026-10-19", time: "1:00–4:00 PM", course: "Study session", title: "Final review: ECO365H5 Midterm", type: "study", due: "2026-10-23" },
+    { date: "2026-10-20", time: "7:30–8:30 PM", course: "Study session", title: "Start reviewing: ECO312H5 Quiz 2", type: "study", due: "2026-11-03" },
     { date: "2026-10-23", time: "11:59 PM", course: "ECO365H5", title: "Midterm due" },
     { date: "2026-10-26", time: "All day", course: "Note", title: "Reading Week — no ECO311H5 / ECO312H5 classes" },
+    { date: "2026-10-26", time: "7:00–8:00 PM", course: "Study session", title: "Start reviewing: ECO311H5 Quiz 2", type: "study", due: "2026-11-09" },
     { date: "2026-10-27", time: "All day", course: "Note", title: "No ECO312H5 class (reading week)" },
-    { date: "2026-10-31", time: "2:00–3:30 PM", course: "Study session", title: "Study: ECO312H5 Quiz 2 (Mergers)", type: "study" },
+    { date: "2026-10-27", time: "7:30–8:30 PM", course: "Study session", title: "Review: ECO312H5 Quiz 2 (practice problems)", type: "study", due: "2026-11-03" },
+    { date: "2026-10-31", time: "2:00–3:30 PM", course: "Study session", title: "Final review: ECO312H5 Quiz 2 (Mergers)", type: "study", due: "2026-11-03" },
+    { date: "2026-11-02", time: "7:00–8:00 PM", course: "Study session", title: "Review: ECO311H5 Quiz 2 (practice problems)", type: "study", due: "2026-11-09" },
     { date: "2026-11-03", time: "In class", course: "ECO312H5", title: "Quiz 2 (lectures 4–6) — 20%" },
-    { date: "2026-11-06", time: "7:00–8:30 PM", course: "Study session", title: "Study: ECO311H5 Quiz 2 (Intertemporal & Product Diff.)", type: "study" },
+    { date: "2026-11-06", time: "7:00–8:30 PM", course: "Study session", title: "Final review: ECO311H5 Quiz 2 (Intertemporal & Product Diff.)", type: "study", due: "2026-11-09" },
+    { date: "2026-11-07", time: "10:30–11:30 AM", course: "Study session", title: "Start reviewing: ECO365H5 Quiz", type: "study", due: "2026-11-20" },
     { date: "2026-11-09", time: "In class", course: "ECO311H5", title: "Quiz 2" },
+    { date: "2026-11-13", time: "7:00–8:00 PM", course: "Study session", title: "Review: ECO365H5 Quiz (practice problems)", type: "study", due: "2026-11-20" },
     { date: "2026-11-16", time: "Released", course: "ECO311H5", title: "Final Assignment released (due Dec 8)" },
-    { date: "2026-11-18", time: "7:00–8:30 PM", course: "Study session", title: "Study: ECO365H5 Quiz", type: "study" },
+    { date: "2026-11-17", time: "7:30–8:30 PM", course: "Study session", title: "Start reviewing: ECO312H5 Quiz 3", type: "study", due: "2026-12-01" },
+    { date: "2026-11-18", time: "7:00–8:30 PM", course: "Study session", title: "Final review: ECO365H5 Quiz", type: "study", due: "2026-11-20" },
     { date: "2026-11-20", time: "9:00 PM", course: "ECO365H5", title: "Quiz — /15" },
-    { date: "2026-11-22", time: "1:00–4:00 PM", course: "Study session", title: "Work: ECO311H5 Final Assignment (early start)", type: "study" },
-    { date: "2026-11-28", time: "2:00–3:30 PM", course: "Study session", title: "Study: ECO312H5 Quiz 3 (Market Entry, Hotelling, R&D)", type: "study" },
-    { date: "2026-11-29", time: "1:00–4:00 PM", course: "Study session", title: "Work: ECO365H5 Trading Project", type: "study" },
+    { date: "2026-11-22", time: "1:00–4:00 PM", course: "Study session", title: "Work: ECO311H5 Final Assignment (early start)", type: "study", due: "2026-12-08" },
+    { date: "2026-11-23", time: "7:00–8:00 PM", course: "Study session", title: "Start reviewing: ECO311H5 Quiz 3", type: "study", due: "2026-12-08" },
+    { date: "2026-11-24", time: "7:30–8:30 PM", course: "Study session", title: "Review: ECO312H5 Quiz 3 (practice problems)", type: "study", due: "2026-12-01" },
+    { date: "2026-11-28", time: "2:00–3:30 PM", course: "Study session", title: "Final review: ECO312H5 Quiz 3 (Market Entry, Hotelling, R&D)", type: "study", due: "2026-12-01" },
+    { date: "2026-11-29", time: "1:00–4:00 PM", course: "Study session", title: "Work: ECO365H5 Trading Project", type: "study", due: "2026-12-04" },
+    { date: "2026-11-30", time: "7:00–8:00 PM", course: "Study session", title: "Review: ECO311H5 Quiz 3 (practice problems)", type: "study", due: "2026-12-08" },
     { date: "2026-12-01", time: "In class", course: "ECO312H5", title: "Quiz 3 (lectures 7–9) — 20%" },
     { date: "2026-12-04", time: "9:00 AM", course: "ECO365H5", title: "Trading Project due — /100" },
-    { date: "2026-12-05", time: "2:00–4:00 PM", course: "Study session", title: "Study: ECO311H5 Quiz 3 + finish Final Assignment", type: "study" },
+    { date: "2026-12-05", time: "2:00–4:00 PM", course: "Study session", title: "Final review: ECO311H5 Quiz 3 + finish Final Assignment", type: "study", due: "2026-12-08" },
     { date: "2026-12-08", time: "In class", course: "ECO311H5", title: "Quiz 3" },
     { date: "2026-12-08", time: "11:59 PM", course: "ECO311H5", title: "Final Assignment due — 30%" },
-    { date: "2026-12-09", time: "6:00–8:00 PM", course: "Study session", title: "Work: ECO312H5 Term Paper (due Dec 11)", type: "study" },
+    { date: "2026-12-09", time: "6:00–8:00 PM", course: "Study session", title: "Work: ECO312H5 Term Paper (due Dec 11)", type: "study", due: "2026-12-11" },
     { date: "2026-12-11", time: "Due", course: "ECO312H5", title: "Term Paper due — 40%" }
   ];
+
+  function daysUntil(dateStr) {
+    const target = new Date(`${dateStr}T00:00:00`);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.round((target - today) / 86400000);
+  }
+
+  function formatDueCountdown(dueStr) {
+    const n = daysUntil(dueStr);
+    const label = new Date(`${dueStr}T00:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (n <= 0) return `due today (${label})`;
+    if (n === 1) return `due tomorrow (${label})`;
+    return `due in ${n} days (${label})`;
+  }
 
   function renderDeadlines() {
     const list = document.getElementById("deadlinesList");
@@ -154,12 +187,13 @@
         const dow = dt.toLocaleDateString(undefined, { weekday: "short" });
         const dom = dt.getDate();
         const cls = d.type === "study" ? "deadline-item study" : "deadline-item";
+        const countdown = d.due ? ` · ${formatDueCountdown(d.due)}` : "";
         return `
           <li class="${cls}">
             <div class="deadline-date"><span class="dow">${dow}</span><span class="dom">${dom}</span></div>
             <div class="deadline-body">
               <div class="deadline-title">${escapeHtml(d.title)}</div>
-              <div class="deadline-meta">${escapeHtml(d.course)} · ${escapeHtml(d.time)}</div>
+              <div class="deadline-meta">${escapeHtml(d.course)} · ${escapeHtml(d.time)}${countdown}</div>
             </div>
           </li>
         `;
@@ -490,12 +524,23 @@
   }
 
   // ---- To-Do list ----
-  const TODO_KEY = "timetable_todos_v1";
+  const TODO_KEY = "timetable_todos_v2";
   let todos = [];
 
   function loadTodos() {
+    const raw = localStorage.getItem(TODO_KEY);
+    if (raw === null) {
+      const seed = [
+        { id: uid(), text: "Get STA220H5 mailroom access code from Asal", done: false },
+        { id: uid(), text: "Pick up STA220H5 worksheets from Asal's mailbox (watch for STA258 mix-ups)", done: false },
+        { id: uid(), text: "Introduce myself in first STA220H5 tutorial", done: false },
+        { id: uid(), text: "Log TA hours for the mid-course DDAH meeting", done: false }
+      ];
+      localStorage.setItem(TODO_KEY, JSON.stringify(seed));
+      return seed;
+    }
     try {
-      const parsed = JSON.parse(localStorage.getItem(TODO_KEY));
+      const parsed = JSON.parse(raw);
       return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
