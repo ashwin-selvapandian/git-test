@@ -7,7 +7,7 @@
   const SLOT_MIN = 30;
   const SLOTS_PER_HOUR = 60 / SLOT_MIN;
   const TOTAL_SLOTS = (END_HOUR - START_HOUR) * SLOTS_PER_HOUR;
-  const STORAGE_KEY = "timetable_events_v6";
+  const STORAGE_KEY = "timetable_events_v7";
   const ROW_PX = 28;
 
   const grid = document.getElementById("calendarGrid");
@@ -43,7 +43,11 @@
         { id: uid(), title: "Part-time Job", day: 1, start: "15:00", end: "19:00", location: "", color: "#734a5c" },
         { id: uid(), title: "Part-time Job", day: 3, start: "15:00", end: "19:00", location: "", color: "#734a5c" },
         { id: uid(), title: "Meeting Prof. Eduardo", day: 2, start: "11:00", end: "11:30", location: "TBD", color: "#73573d" },
-        { id: uid(), title: "Mark STA220H5 Worksheets", day: 3, start: "19:30", end: "20:15", location: "", color: "#4a6b73" }
+        { id: uid(), title: "Mark STA220H5 Worksheets", day: 3, start: "19:30", end: "20:15", location: "", color: "#4a6b73" },
+        { id: uid(), title: "ECO311H5 – Weekly Problem Set", day: 6, start: "11:00", end: "12:00", location: "", color: "#3d6b5c" },
+        { id: uid(), title: "ECO312H5 – Weekly Concept Review", day: 6, start: "12:00", end: "13:00", location: "", color: "#5c6b8a" },
+        { id: uid(), title: "ECO365H5 – Weekly Problem Set", day: 6, start: "13:00", end: "14:00", location: "", color: "#6b4c8a" },
+        { id: uid(), title: "ECO466H5 – Canadian Economy Reading", day: 6, start: "14:00", end: "14:45", location: "", color: "#a8763e" }
       ];
       saveEvents(sample);
       return sample;
