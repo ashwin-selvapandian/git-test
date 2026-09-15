@@ -7,7 +7,7 @@
   const SLOT_MIN = 30;
   const SLOTS_PER_HOUR = 60 / SLOT_MIN;
   const TOTAL_SLOTS = (END_HOUR - START_HOUR) * SLOTS_PER_HOUR;
-  const STORAGE_KEY = "timetable_events_v7";
+  const STORAGE_KEY = "timetable_events_v8";
   const ROW_PX = 28;
 
   const grid = document.getElementById("calendarGrid");
@@ -44,10 +44,10 @@
         { id: uid(), title: "Part-time Job", day: 3, start: "15:00", end: "19:00", location: "", color: "#734a5c" },
         { id: uid(), title: "Meeting Prof. Eduardo", day: 2, start: "11:00", end: "11:30", location: "TBD", color: "#73573d" },
         { id: uid(), title: "Mark STA220H5 Worksheets", day: 3, start: "19:30", end: "20:15", location: "", color: "#4a6b73" },
-        { id: uid(), title: "ECO311H5 – Weekly Problem Set", day: 6, start: "11:00", end: "12:00", location: "", color: "#3d6b5c" },
-        { id: uid(), title: "ECO312H5 – Weekly Concept Review", day: 6, start: "12:00", end: "13:00", location: "", color: "#5c6b8a" },
-        { id: uid(), title: "ECO365H5 – Weekly Problem Set", day: 6, start: "13:00", end: "14:00", location: "", color: "#6b4c8a" },
-        { id: uid(), title: "ECO466H5 – Canadian Economy Reading", day: 6, start: "14:00", end: "14:45", location: "", color: "#a8763e" }
+        { id: uid(), title: "ECO311H5 – Weekly Problem Set", day: 0, start: "19:00", end: "20:00", location: "", color: "#3d6b5c", isStudy: true, course: "ECO311H5" },
+        { id: uid(), title: "ECO312H5 – Weekly Concept Review", day: 2, start: "15:00", end: "16:00", location: "", color: "#5c6b8a", isStudy: true, course: "ECO312H5" },
+        { id: uid(), title: "ECO365H5 – Weekly Problem Set", day: 3, start: "13:00", end: "14:00", location: "", color: "#6b4c8a", isStudy: true, course: "ECO365H5" },
+        { id: uid(), title: "ECO466H5 – Canadian Economy Reading", day: 4, start: "11:15", end: "12:00", location: "", color: "#a8763e", isStudy: true, course: "ECO466H5" }
       ];
       saveEvents(sample);
       return sample;
@@ -90,6 +90,147 @@
     }
     return `${fmt(start)} – ${fmt(end)}`;
   }
+
+  // ---- Study check-ins & progress tracking ----
+  const STUDY_LOG_KEY = "timetable_studylog_v1";
+  const TRACKED_COURSES = ["ECO311H5", "ECO312H5", "ECO365H5", "ECO466H5"];
+  const COURSE_COLORS = { ECO311H5: "#3d6b5c", ECO312H5: "#5c6b8a", ECO365H5: "#6b4c8a", ECO466H5: "#a8763e" };
+  const COURSE_RE = /(ECO\d{3}H5|CSC\d{3}H1|STA\d{3}H5)/;
+
+  function extractCourseCode(title) {
+    const m = title.match(COURSE_RE);
+    return m ? m[1] : null;
+  }
+
+  function loadStudyLog() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(STUDY_LOG_KEY));
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveStudyLog(log) {
+    localStorage.setItem(STUDY_LOG_KEY, JSON.stringify(log));
+  }
+
+  function getLogEntry(course, dateKey) {
+    return studyLog.find((e) => e.course === course && e.dateKey === dateKey) || null;
+  }
+
+  function setLogEntry(course, dateKey, status) {
+    const existing = getLogEntry(course, dateKey);
+    if (existing) {
+      existing.status = status;
+      existing.loggedAt = new Date().toISOString();
+    } else {
+      studyLog.push({ course, dateKey, status, loggedAt: new Date().toISOString() });
+    }
+    saveStudyLog(studyLog);
+  }
+
+  function getCourseStats(course) {
+    const entries = studyLog.filter((e) => e.course === course);
+    const studied = entries.filter((e) => e.status === "studied").length;
+    const other = entries.filter((e) => e.status === "other").length;
+    const skipped = entries.filter((e) => e.status === "skipped").length;
+    const total = entries.length;
+    return { studied, other, skipped, total, pct: total ? Math.round((studied / total) * 100) : null };
+  }
+
+  function pad2(n) {
+    return String(n).padStart(2, "0");
+  }
+
+  function isoDate(d) {
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  }
+
+  function getThisWeekDate(dayIndex) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayDow = (today.getDay() + 6) % 7; // Mon=0..Sun=6
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - todayDow);
+    const target = new Date(monday);
+    target.setDate(monday.getDate() + dayIndex);
+    return isoDate(target);
+  }
+
+  function minutesToTime(mins) {
+    return `${pad2(Math.floor(mins / 60))}:${pad2(mins % 60)}`;
+  }
+
+  function isSlotFree(dayIndex, startMin, endMin, occupied) {
+    return !occupied.some((ev) => {
+      if (Number(ev.day) !== dayIndex) return false;
+      const s = timeToMinutes(ev.start);
+      const e = timeToMinutes(ev.end);
+      return startMin < e && s < endMin;
+    });
+  }
+
+  function findFreeSlot(dayIndex, occupied, durationMin) {
+    for (let h = 9; h < 21; h++) {
+      for (const m of [0, 30]) {
+        const s = h * 60 + m;
+        const e = s + durationMin;
+        if (e > 21 * 60) continue;
+        if (isSlotFree(dayIndex, s, e, occupied)) return { start: minutesToTime(s), end: minutesToTime(e) };
+      }
+    }
+    return null;
+  }
+
+  function needsCatchUp(course) {
+    const entries = studyLog
+      .filter((e) => e.course === course)
+      .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
+    if (!entries.length) return false;
+    const latest = entries[0];
+    const daysAgo = daysUntil(latest.dateKey) * -1;
+    return latest.status === "skipped" && daysAgo >= 0 && daysAgo <= 14;
+  }
+
+  function computeCatchUps() {
+    const needing = TRACKED_COURSES.filter(needsCatchUp);
+    if (!needing.length) return [];
+    const occupied = events.slice();
+    const searchDays = [5, 6, 0, 1, 2, 3, 4];
+    const result = [];
+    for (const course of needing) {
+      if (result.length >= 2) break;
+      let slot = null;
+      let chosenDay = null;
+      for (const d of searchDays) {
+        slot = findFreeSlot(d, occupied, 45);
+        if (slot) {
+          chosenDay = d;
+          break;
+        }
+      }
+      if (slot) {
+        const synth = {
+          id: `catchup-${course}`,
+          title: `Catch-up: ${course}`,
+          day: chosenDay,
+          start: slot.start,
+          end: slot.end,
+          color: COURSE_COLORS[course] || "#73573d",
+          location: "",
+          isStudy: true,
+          isCatchUp: true,
+          course
+        };
+        result.push(synth);
+        occupied.push(synth);
+      }
+    }
+    return result;
+  }
+
+  const studyLog = loadStudyLog();
 
   const DEADLINES = [
     { date: "2026-09-14", time: "All day", course: "Personal", title: "Greg's birthday" },
@@ -186,17 +327,21 @@
       .sort((a, b) => a.date.localeCompare(b.date));
 
     list.innerHTML = upcoming
-      .map((d) => {
+      .map((d, i) => {
         const dt = new Date(`${d.date}T00:00:00`);
         const dow = dt.toLocaleDateString(undefined, { weekday: "short" });
         const dom = dt.getDate();
-        const cls = d.type === "study" ? "deadline-item study" : "deadline-item";
+        const isStudy = d.type === "study";
+        const course = isStudy ? extractCourseCode(d.title) : null;
+        const logEntry = isStudy && course ? getLogEntry(course, d.date) : null;
+        const cls = ["deadline-item", isStudy ? "study" : "", logEntry ? `logged-${logEntry.status}` : ""].filter(Boolean).join(" ");
         const countdown = d.due ? ` · ${formatDueCountdown(d.due)}` : "";
+        const badge = logEntry ? { studied: " ✓", other: " ↔", skipped: " ✕" }[logEntry.status] : "";
         return `
-          <li class="${cls}">
+          <li class="${cls}" ${isStudy ? `data-idx="${i}"` : ""}>
             <div class="deadline-date"><span class="dow">${dow}</span><span class="dom">${dom}</span></div>
             <div class="deadline-body">
-              <div class="deadline-title">${escapeHtml(d.title)}</div>
+              <div class="deadline-title">${escapeHtml(d.title)}${badge}</div>
               <div class="deadline-meta">${escapeHtml(d.course)} · ${escapeHtml(d.time)}${countdown}</div>
             </div>
           </li>
@@ -207,6 +352,17 @@
     if (!upcoming.length) {
       list.innerHTML = `<li class="deadline-item"><div class="deadline-body"><div class="deadline-meta">Nothing upcoming — you're clear.</div></div></li>`;
     }
+
+    list.querySelectorAll(".deadline-item.study").forEach((li) => {
+      li.addEventListener("click", () => {
+        const d = upcoming[Number(li.dataset.idx)];
+        const course = extractCourseCode(d.title);
+        if (!course) return;
+        const dt = new Date(`${d.date}T00:00:00`);
+        const label = `${d.title} — ${dt.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
+        openCheckin(course, d.date, label);
+      });
+    });
   }
 
   let events = loadEvents();
@@ -291,8 +447,9 @@
   function renderEvents() {
     grid.querySelectorAll(".event-block").forEach((el) => el.remove());
 
+    const allEvents = events.concat(computeCatchUps());
     const byDay = {};
-    events.forEach((ev) => {
+    allEvents.forEach((ev) => {
       (byDay[ev.day] = byDay[ev.day] || []).push(ev);
     });
 
@@ -312,6 +469,14 @@
 
         const block = document.createElement("div");
         block.className = "event-block";
+        let logEntry = null;
+        if (ev.isStudy) {
+          block.classList.add("study");
+          if (ev.isCatchUp) block.classList.add("catchup");
+          const dateKey = getThisWeekDate(Number(ev.day));
+          logEntry = getLogEntry(ev.course, dateKey);
+          if (logEntry) block.classList.add(`logged-${logEntry.status}`);
+        }
         block.style.gridRow = `${rowStart} / span ${rowSpan}`;
         block.style.gridColumn = String(Number(ev.day) + 2);
         block.style.background = ev.color || "#3d6b5c";
@@ -322,14 +487,22 @@
           block.style.marginLeft = `calc(${100 / colTotal}% * ${col} + 2px)`;
           block.style.marginRight = "0";
         }
+        const badge = logEntry ? { studied: "✓", other: "↔", skipped: "✕" }[logEntry.status] : "";
         block.innerHTML = `
+          ${badge ? `<span class="ev-badge">${badge}</span>` : ""}
           <div class="ev-title">${escapeHtml(ev.title)}</div>
           <div class="ev-meta">${formatTimeRange(ev.start, ev.end)}</div>
           ${ev.location ? `<div class="ev-meta">${escapeHtml(ev.location)}</div>` : ""}
         `;
         block.addEventListener("click", (e) => {
           e.stopPropagation();
-          openEditModal(ev);
+          if (ev.isStudy) {
+            const dateKey = getThisWeekDate(Number(ev.day));
+            const dayLabel = DAYS[Number(ev.day)];
+            openCheckin(ev.course, dateKey, `${ev.title} — ${dayLabel} (this week)`);
+          } else {
+            openEditModal(ev);
+          }
         });
         grid.appendChild(block);
       });
@@ -421,6 +594,51 @@
     overlay.classList.add("hidden");
   }
 
+  // ---- Study check-in modal ----
+  const checkinOverlay = document.getElementById("checkinOverlay");
+  const checkinTitle = document.getElementById("checkinTitle");
+  const checkinSub = document.getElementById("checkinSub");
+  const checkinCurrent = document.getElementById("checkinCurrent");
+  const checkinCancel = document.getElementById("checkinCancel");
+  let checkinContext = null;
+
+  function openCheckin(course, dateKey, label) {
+    if (!course) return;
+    checkinContext = { course, dateKey };
+    checkinTitle.textContent = course;
+    checkinSub.textContent = label;
+    const existing = getLogEntry(course, dateKey);
+    if (existing) {
+      const wording = { studied: "You logged this as studied.", other: "You logged this as: did something else.", skipped: "You logged this as skipped." }[existing.status];
+      checkinCurrent.textContent = wording;
+      checkinCurrent.classList.remove("hidden");
+    } else {
+      checkinCurrent.classList.add("hidden");
+    }
+    checkinOverlay.classList.remove("hidden");
+  }
+
+  function closeCheckin() {
+    checkinOverlay.classList.add("hidden");
+    checkinContext = null;
+  }
+
+  checkinOverlay.querySelectorAll(".checkin-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (!checkinContext) return;
+      setLogEntry(checkinContext.course, checkinContext.dateKey, btn.dataset.status);
+      closeCheckin();
+      renderEvents();
+      renderDeadlines();
+      renderProgress();
+    });
+  });
+
+  checkinCancel.addEventListener("click", closeCheckin);
+  checkinOverlay.addEventListener("click", (e) => {
+    if (e.target === checkinOverlay) closeCheckin();
+  });
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     formError.classList.add("hidden");
@@ -508,11 +726,16 @@
   });
 
   // ---- Tab navigation ----
-  const PAGE_TITLES = { schedule: "Ashwin's Timetable", todo: "To-Do", notes: "Notes" };
+  const PAGE_TITLES = { schedule: "Ashwin's Timetable", todo: "To-Do", notes: "Notes", progress: "Progress" };
 
   function initTabs() {
     const tabs = document.querySelectorAll(".tab");
-    const views = { schedule: document.getElementById("viewSchedule"), todo: document.getElementById("viewTodo"), notes: document.getElementById("viewNotes") };
+    const views = {
+      schedule: document.getElementById("viewSchedule"),
+      todo: document.getElementById("viewTodo"),
+      notes: document.getElementById("viewNotes"),
+      progress: document.getElementById("viewProgress")
+    };
     const scheduleActions = document.getElementById("scheduleActions");
     const pageTitle = document.getElementById("pageTitle");
 
@@ -669,8 +892,42 @@
     renderNotes();
   }
 
+  // ---- Progress tab ----
+  const COURSE_LABELS = {
+    ECO311H5: "ECO311H5 – Pricing Strategies",
+    ECO312H5: "ECO312H5 – Firms and Markets",
+    ECO365H5: "ECO365H5 – International Monetary",
+    ECO466H5: "ECO466H5 – Empirical Macro"
+  };
+
+  function renderProgress() {
+    const list = document.getElementById("progressList");
+    if (!list) return;
+    list.innerHTML = TRACKED_COURSES.map((course) => {
+      const stats = getCourseStats(course);
+      const color = COURSE_COLORS[course];
+      const pctLabel = stats.pct === null ? "No check-ins yet" : `${stats.pct}%`;
+      const barWidth = stats.pct === null ? 0 : stats.pct;
+      return `
+        <div class="progress-row">
+          <div class="progress-row-head">
+            <span class="progress-course">${escapeHtml(COURSE_LABELS[course] || course)}</span>
+            <span class="progress-pct">${pctLabel}</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" style="width:${barWidth}%; background:${color};"></div>
+          </div>
+          <div class="progress-counts">
+            ${stats.total ? `${stats.studied} studied · ${stats.other} other · ${stats.skipped} skipped` : "Check in on a study session to start tracking"}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
   buildGrid();
   renderDeadlines();
+  renderProgress();
   initTabs();
   initTodos();
   initNotes();
